@@ -2,7 +2,7 @@
 
 Recreate the **Thevenin model** for a battery. Neglect the temperature influence. 
 Use the data set from Prof. Gregory L Plett's book <[Battery Modelling](http://mocha-java.uccs.edu/BMS1/index.html)>.
-
+![Image of ECM](https://gitlab.com/zihaos-play-yard/simplified_ecm_matlab/-/blob/main/ECM.PNG)
 
 ## Getting started
 
