@@ -1,7 +1,8 @@
 # Simplified_ECM_Matlab
 
-Recreate the Thevenin model for a battery. Neglect the temperature influence. 
+Recreate the **Thevenin model** for a battery. Neglect the temperature influence. 
 Use the data set from Prof. Gregory L Plett's book <[Battery Modelling](http://mocha-java.uccs.edu/BMS1/index.html)>.
+
 
 ## Getting started
 
