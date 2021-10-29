@@ -54,7 +54,7 @@ for k = 1:length(temps),
     end    
 end
 
-% then, call "getOCV" to do the actual data processing
-model = getOCV(data,cellID,minV,maxV,1);
+% then, call "generateOCVSOC" to do the actual data processing
+model = generateOCVSOC(data,cellID,minV,maxV);
 save(sprintf('%smodel-ocv.mat',cellID),'model'); % save model file
 

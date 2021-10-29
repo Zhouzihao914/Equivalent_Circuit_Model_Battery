@@ -1,15 +1,14 @@
 
-% Function getOCV
+% Function generateOCVSOC
 % Inputs:
 %   data = cell-test data passed in from runProcessOCV
 %   cellID = cell identifier (string)
 %   minV = minimum cell voltage to use in OCV relationship
 %   maxV = maximum cell voltage to use in OCV relationship
-%   savePlots = 0 or 1 ... set to "1" to save plots as files 
 % Output:
 %   model = data structure with information for recreating OCV
 
-function model = getOCV(data, cellID, minV, maxV, saveplots)
+function model = generateOCVSOC(data, cellID, minV, maxV)
     filetemps = [data.temp]; filetemps = filetemps(:);
     numtemps = length(filetemps); 
 
@@ -181,7 +180,7 @@ function model = getOCV(data, cellID, minV, maxV, saveplots)
 
     numtemps_kept = size(OCV_tol,1);
 
-    % OCV(T,Z) = OCV0(Z) + T*OCVrel(T,Z)
+    % OCV(T,Z) = OCV0(Z) + T*OCVrel(Z)
     % Calculate the OCV-SOC(Z) relationship
     % Y = AX 
     % Y = [OCV(T1,Z_k),...,OCV(Tn,Z_k)]' = OCV_tol(:,k)
@@ -209,7 +208,8 @@ function model = getOCV(data, cellID, minV, maxV, saveplots)
     V = minV-0.01:0.01:maxV+0.01;
     soc_tol = [];
     for T = filetemps',
-    V1 = OCVfromSOCtemp(Z,T,model); % V1 generated from OCV-SOC above
+    V1 = getOCV
+        %V1 = OCVfromSOCtemp(Z,T,model); % V1 generated from OCV-SOC above
     soc_tol = [soc_tol; interp1(V1,Z,V)];
     end
     
