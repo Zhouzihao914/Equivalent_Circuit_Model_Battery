@@ -208,7 +208,7 @@ function model = generateOCVSOC(data, cellID, minV, maxV)
     V = minV-0.01:0.01:maxV+0.01;
     soc_tol = [];
     for T = filetemps',
-    V1 = OCVfromSOCtemp(Z,T,model); % V1 generated from OCV-SOC above
+    V1 = getOCVfromSOCTemp(Z,T,model); % V1 generated from OCV-SOC above
     soc_tol = [soc_tol; interp1(V1,Z,V)];
     end
     
@@ -231,7 +231,7 @@ function model = generateOCVSOC(data, cellID, minV, maxV)
     figure;
     Legend = cell(length(filetemps),1);
     for i = 1:length(filetemps),
-        plot(100*SOC, OCVfromSOCtemp(SOC,file_data(i).temp, model))
+        plot(100*SOC, getOCVfromSOCTemp(SOC,file_data(i).temp, model))
         Legend{i} = strcat(int2str(file_data(i).temp),'degC');
         hold on
     end
@@ -244,7 +244,7 @@ function model = generateOCVSOC(data, cellID, minV, maxV)
 
     figure;
     
-    plot(100*SOC, OCVfromSOCtemp(SOC,file_data(ind25).temp, model),'r');
+    plot(100*SOC, getOCVfromSOCTemp(SOC,file_data(ind25).temp, model),'r');
 
     hold on
     plot(100*file_data(ind25).disZ, file_data(ind25).disV, 'b--', 'linewidth',1);
