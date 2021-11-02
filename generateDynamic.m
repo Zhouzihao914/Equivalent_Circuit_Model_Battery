@@ -106,13 +106,13 @@ function model = generateDynamic(data, model, num_rc)
         tk = (1:length(vk))-1;
         etaik = ik; etaik(ik<0) = etaik(ik<0)*eta;
         
-        h=0*ik; sik = 0*ik;
-        fac=exp(-abs(0*etaik/(3600*Q)));
-        for k=2:length(ik),
-            h(k)=fac(k-1)*h(k-1)-(1-fac(k-1))*sign(ik(k-1));
-            sik(k) = sign(ik(k));
-            if abs(ik(k))<Q/100, sik(k) = sik(k-1); end
-        end
+        %h=0*ik; sik = 0*ik;
+        %fac=exp(-abs(0*etaik/(3600*Q)));
+        %for k=2:length(ik),
+        %    h(k)=fac(k-1)*h(k-1)-(1-fac(k-1))*sign(ik(k-1));
+        %    sik(k) = sign(ik(k));
+        %    if abs(ik(k))<Q/100, sik(k) = sik(k-1); end
+        %end
 
         % First modeling step: Compute error with model = OCV only
         vest1 = data(curr_ind(curr_file)).OCV;
@@ -163,13 +163,18 @@ function model = generateDynamic(data, model, num_rc)
         if curr_temp == 25,
             figure(1); 
             subplot(yplots,xplots,curr_file); 
-            plot(tk(1:10:end)/60,vk(1:10:end),tk(1:10:end)/60,...
-             vest1(1:10:end),tk(1:10:end)/60,vest2(1:10:end));  
+            %plot(tk(1:10:end)/60,vk(1:10:end),tk(1:10:end)/60,...
+            % vest1(1:10:end),tk(1:10:end)/60,vest2(1:10:end));  
+            plot(tk(1:10:end)/60,vk(1:10:end),'b');
+            hold on
+            plot(tk(1:10:end)/60,vest2(1:10:end),'r');
+            plot(tk(1:10:end)/60,vest1(1:10:end),'g');
+            hold off
             xlabel('Time (min)'); ylabel('Voltage (V)'); 
             title(sprintf('Voltage and estimates at T=%d',...
                       data(ind(curr_file)).temp));
-            legend('voltage','vest1 (OCV)','vest2 (DYN)','location','southwest');
-    
+            legend('voltage','vest2 (DYN)','vest1 (OCV)','location','southwest');
+            
             % plot modeling errors
             figure(2); subplot(yplots,xplots,curr_file); 
             thetitle=sprintf('Modeling error at T = %d',data(ind(curr_file)).temp);

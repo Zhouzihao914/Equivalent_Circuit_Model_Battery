@@ -50,15 +50,17 @@ data_ind = 0;
   % Plot model-match voltage results at 15 degC, plus RMS voltage-estimation 
   % error between 5% and 95% cell state of charge
   figure(4);
-  %ind_25 = find(temps == 25);
-  ind_15 = find(temps == 15);
-  [vk,rck,zk,OCV] = ECMcell(data(ind_15).script1.current,temps(ind_15),1,...
+  ind_25 = find(temps == 25);
+  %ind_15 = find(temps == 15);
+  [vk,rck,zk,OCV] = ECMcell(data(ind_25).script1.current,temps(ind_25),1,...
                             model,1,zeros(num_rc,1));
 
 
-  tk = (1:length(data(ind_15).script1.current))-1;
-  plot(tk,data(ind_15).script1.voltage,tk,vk);
-  title('Voltage and estimates at T=15');
+  tk = (1:length(data(ind_25).script1.current))-1;
+  plot(tk/60,data(ind_25).script1.voltage,tk/60,vk);
+  xlabel('Time(min)')
+  ylabel('Voltage(volts)')
+  title('Voltage and estimates at T=25');
   legend('real voltage','estimated voltage');
 
   tol_verr = []
@@ -78,5 +80,10 @@ data_ind = 0;
   disp('RMS error of ECMcell at:');
   disp(temps);
   disp(tol_verr);
+
+  figure(5)
+  plot(temps,tol_verr,'ro');
+  xlabel('Temperature');
+  ylabel('Mean Square Error');
 
 
