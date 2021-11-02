@@ -6,9 +6,9 @@ Use the data set from Prof. Gregory L Plett's book <[Battery Modelling](http://m
 
 ## Getting started
 
-Begin with the onesampleOCV.m file to generate required static parameters (Resistance, OCV-SOC, eta, Q_tol).
-Then run the onesampleDynamic.m file to train required dynamic parameters (I_R1, SOC).
-Finally test the built ECM model with testModel.m file.
+Begin with the onesampleOCV.m file to get required static parameters (R0, OCV-SOC, eta, Q_tol).
+Then run the generateDynamic.m file to get required dynamic parameters (OCV, eta, R0, RC).
+Finally test the built ECM model with testECM.m file.
 
 There will be a tol_Q_func.m file to define the total capacity into a function of time. 
 
