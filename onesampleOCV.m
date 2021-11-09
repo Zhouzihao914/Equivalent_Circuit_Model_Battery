@@ -49,7 +49,7 @@ for k = 1:length(temps),
         plot(script_time4/3600, data(k).script4.voltage,'r');
         xlabel('Time(hr)')
         ylabel('Voltage(volt)')
-        title('Voltage Curves at 25');
+        title('Voltage Curves at 25 degC');
         hold off
     end    
 end

@@ -107,6 +107,8 @@ function model = generateOCVSOC(data, cellID, minV, maxV)
     
     
 
+
+
     % ------------------------------------------------------------------
     % Create SOC and OCV arrays under other temperatures
     % The only difference is coulombic efficiencies
@@ -241,19 +243,22 @@ function model = generateOCVSOC(data, cellID, minV, maxV)
     title('OCV-SOC under different temps')
     hold off
     
-
     figure;
-    
-    plot(100*SOC, getOCVfromSOCTemp(SOC,file_data(ind25).temp, model),'r');
-
+    plot(100*SOC, getOCVfromSOCTemp(SOC,file_data(ind25).temp, model)*10,'r');
     hold on
-    plot(100*file_data(ind25).disZ, file_data(ind25).disV, 'b--', 'linewidth',1);
-    plot(100*file_data(ind25).chgZ, file_data(ind25).chgV, 'g--', 'linewidth',1);
-    legend(["Estimated OCV", "disV", "chgV"])
+    %plot(100*disZ, disV, 'b--', 'linewidth',1)
+    %plot(100*chgZ, chgV, 'g--', 'linewidth',1)
+    
+    plot(100*file_data(ind25).disZ, file_data(ind25).disV*10, 'b--', 'linewidth',1);
+    plot(100*file_data(ind25).chgZ, file_data(ind25).chgV*10, 'g--', 'linewidth',1);
+    legend(["Estimated OCV", "Terminal disV", "Terminal chgV"])
+    %legend(["Estimated OCV", "dis-ocv", "chg-ocv","Terminal disV", "Terminal chgV"])
     xlabel('SOC')
     ylabel('Voltage')
     title('OCV-SOC at 25 degC with disV/chgV')
     hold off
+
+    
 
 
 

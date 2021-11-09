@@ -15,7 +15,7 @@
 %         OCV - open-circuit voltage for all timesteps
 
 
-function [vk,irk,zk,OCV] = ECMcell(ik,T,deltaT,model,z0,iR0)
+function [vk,irk,zk,OCV] = ECMcell(ik,T,deltaT,model,z0,iR0,do_Qtime)
   % Force data to be column vector(s)
   ik = ik(:); iR0 = iR0(:);
   % Get model parameters from model structure
@@ -39,7 +39,16 @@ function [vk,irk,zk,OCV] = ECMcell(ik,T,deltaT,model,z0,iR0)
       irk(k,:) = RCfact'.*irk(k-1,:) + (1-RCfact')*etaik(k-1);
     end
   end
-  zk = z0-cumsum([0;etaik(1:end-1)])*deltaT/(Q*3600); 
+  
+  % Assume the ECM model have built in toltal capacity time func.
+  if do_Qtime == 1,
+     time_length = length(ik)-1;  
+     Q_time = 3600*Q*[1:-(0.03/time_length):0.97];
+     zk = z0-cumsum([0;etaik(1:end-1)])*deltaT./Q_time';
+  else
+     zk = z0-cumsum([0;etaik(1:end-1)])*deltaT/(Q*3600); 
+  end
+
   if any(zk>1.1),
     warning('Current may have wrong sign as SOC > 110%');
   end

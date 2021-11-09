@@ -8,7 +8,7 @@
 % field model.
 
 
-function model = generateDynamic(data, model, num_rc)
+function model = generateDynamic(data, model, num_rc, doQ_time)
   % ------------------------------------------------------------------
   % Step 1: Compute capacity and coulombic efficiency for every test
   % ------------------------------------------------------------------
@@ -70,6 +70,7 @@ function model = generateDynamic(data, model, num_rc)
   % ------------------------------------------------------------------
   % Step 2: Compensate OCV in charging parts
   % ------------------------------------------------------------------
+
   for i = 1:length(data),
       curr_eta = model.etaParam(i);
       eta_I = data(i).script1.current;
@@ -77,6 +78,21 @@ function model = generateDynamic(data, model, num_rc)
       eta_I(eta_I < 0) = eta_I(eta_I < 0)*curr_eta;
       data(i).Z = 1 - cumsum([0, eta_I(1:end-1)])/(data(i).Q*3600);
       data(i).OCV = getOCVfromSOCTemp(data(i).Z, tol_temps(i), model);
+  end
+
+  % assume the toltal discharge capacity as a linear func of time
+  %
+  if doQ_time == 1,
+    time_length = length(data(ind25).script1.current)-1;  
+    Q_time = 3600*model.QParam(ind25)*[1:-(0.03/time_length):0.97];
+    model.Qtime = Q_time;
+    curr_eta = model.etaParam(ind25);
+    eta_I = data(ind25).script1.current;
+    eta_I(eta_I < 0) = eta_I(eta_I < 0)*curr_eta;
+    %Z_time = 1 - cumsum([0, eta_I(1:end-1)])./Q_time;
+
+    data(ind25).Z_time = 1 - cumsum([0, eta_I(1:end-1)])./Q_time;
+    data(ind25).OCV_time = getOCVfromSOCTemp(data(ind25).Z_time, tol_temps(ind25), model);
   end
 
   % Now begin to optimize for dynamic parameters
@@ -115,7 +131,11 @@ function model = generateDynamic(data, model, num_rc)
         %end
 
         % First modeling step: Compute error with model = OCV only
-        vest1 = data(curr_ind(curr_file)).OCV;
+        if doQ_time == 1 && curr_ind == 6
+            vest1 = data(curr_ind(curr_file)).OCV_time;
+        else
+            vest1 = data(curr_ind(curr_file)).OCV;
+        end
         verr = vk - vest1;
 
         % Second modeling step: Compute time constants in "A" matrix
