@@ -46,8 +46,8 @@ function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,N)
   % Assume for each cycle(dis->chg->rest), a*t takes 0.1% of max discharge
   % capacity, and b*N takes 0.1%
 
-  time_length = 1./[length(ik):-1:1]';
-  a_Qtime = Q*0.001*time_length;
+  time_length = [1:1:length(ik)]';
+  a_Qtime = Q*0.001./time_length;
   b_Qtime = Q*0.001;
   Q_time = 3600*(Q0-a_Qtime-b_Qtime);
   zk = z0-cumsum([0;etaik(1:end-1)])*deltaT./Q_time;
