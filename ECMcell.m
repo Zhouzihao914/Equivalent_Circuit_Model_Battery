@@ -16,7 +16,7 @@
 %         OCV - open-circuit voltage for all timesteps
 
 
-function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,N)
+function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,a, b)
   % Force data to be column vector(s)
   ik = ik(:); iR0 = iR0(:);
   % Get model parameters from model structure
@@ -47,8 +47,8 @@ function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,N)
   % capacity, and b*N takes 0.1%
 
   time_length = 1./[length(ik):-1:1]';
-  a_Qtime = Q*0.001*time_length;
-  b_Qtime = Q*0.001;
+  a_Qtime = Q*a*time_length;
+  b_Qtime = Q*b;
   Q_time = 3600*(Q0-a_Qtime-b_Qtime);
   zk = z0-cumsum([0;etaik(1:end-1)])*deltaT./Q_time;
   Qend = Q_time(end)/3600;
