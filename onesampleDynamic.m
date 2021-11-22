@@ -44,16 +44,16 @@ data_ind = 0;
     data(data_ind).script3 = DYNData.script3;
   end
 
-  model = generateDynamic(data,model,num_rc,0);
+  model = generateDynamic(data,model,num_rc);
   save(modelFile,'model');
 
-  % Plot model-match voltage results at 15 degC, plus RMS voltage-estimation 
+  % Plot model-match voltage results at 25 degC, plus RMS voltage-estimation 
   % error between 5% and 95% cell state of charge
   ind_25 = find(temps == 25);
   %ind_15 = find(temps == 15);
   [vk,rck,zk,OCV] = ECMcell(data(ind_25).script1.current,temps(ind_25),1,...
-                            model,1,zeros(num_rc,1),1);
-
+                            model,1,zeros(num_rc,1),model.QParam(ind_25),0,0,0);
+%[vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,a,b_signal,b)
   figure(4);
   tk = (1:length(data(ind_25).script1.current))-1;
   plot(tk/60,data(ind_25).script1.voltage,tk/60,vk);
@@ -64,13 +64,8 @@ data_ind = 0;
 
   tol_verr = [];
   for i = 1:length(temps),
-      if i == 6
-          do_Qtime = 1;
-      else
-          do_Qtime = 0;
-      end
     [vk,rck,zk,OCV] = ECMcell(data(i).script1.current,temps(i),1,...
-                            model,1,zeros(num_rc,1),do_Qtime);
+                            model,1,zeros(num_rc,1),model.QParam(ind_25),0,0,0);
     curr_verr = data(i).script1.voltage - vk';
     v1 = getOCVfromSOCTemp(0.95,temps(i),model);
     v2 = getOCVfromSOCTemp(0.05,temps(i),model);

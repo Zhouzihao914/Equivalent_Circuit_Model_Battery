@@ -8,7 +8,7 @@
 % field model.
 
 
-function model = generateDynamic(data, model, num_rc, doQ_time)
+function model = generateDynamic(data, model, num_rc)
   % ------------------------------------------------------------------
   % Step 1: Compute capacity and coulombic efficiency for every test
   % ------------------------------------------------------------------
@@ -80,21 +80,6 @@ function model = generateDynamic(data, model, num_rc, doQ_time)
       data(i).OCV = getOCVfromSOCTemp(data(i).Z, tol_temps(i), model);
   end
 
-  % assume the toltal discharge capacity as a linear func of time
-  %
-  if doQ_time == 1,
-    time_length = length(data(ind25).script1.current)-1;  
-    Q_time = 3600*model.QParam(ind25)*[1:-(0.03/time_length):0.97];
-    model.Qtime = Q_time;
-    curr_eta = model.etaParam(ind25);
-    eta_I = data(ind25).script1.current;
-    eta_I(eta_I < 0) = eta_I(eta_I < 0)*curr_eta;
-    %Z_time = 1 - cumsum([0, eta_I(1:end-1)])./Q_time;
-
-    data(ind25).Z_time = 1 - cumsum([0, eta_I(1:end-1)])./Q_time;
-    data(ind25).OCV_time = getOCVfromSOCTemp(data(ind25).Z_time, tol_temps(ind25), model);
-  end
-
   % Now begin to optimize for dynamic parameters
   model.R0Param = NaN(1,num_temps); % "R0" ohmic resistance parameter
   model.RCParam = NaN(num_temps,num_rc); % time const.
@@ -131,11 +116,9 @@ function model = generateDynamic(data, model, num_rc, doQ_time)
         %end
 
         % First modeling step: Compute error with model = OCV only
-        if doQ_time == 1 && curr_ind == 6
-            vest1 = data(curr_ind(curr_file)).OCV_time;
-        else
-            vest1 = data(curr_ind(curr_file)).OCV;
-        end
+        
+        vest1 = data(curr_ind(curr_file)).OCV;
+        
         verr = vk - vest1;
 
         % Second modeling step: Compute time constants in "A" matrix

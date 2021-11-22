@@ -12,25 +12,25 @@ cycle_table_variables = {'time','curr','volt','temp'};
 q_table_variables = {'time','cycles','capacity','resistance'};
 
 
-tol_data_num = 100;
-repeat_times = 50;
+tol_data_num = 10;
+repeat_times = 5;
 num_rc = 1;
 temp = 25;
 do_Qtime = 1;
-dis_unit = udds_current/(8);
+dis_unit = udds_current/(3);
 Qmax = model.QParam(find(model.temps == 25));
 Q0 = Qmax;
 
 % set up the hyper-params for a,b
-u_a = 0.01/72000; sigma_a = 0.01/72000;
-u_b = 0.01/3600; sigma_b = 0.01/3600;
+u_a = 0.01/72000; sigma_a = 0.1/72000;
+u_b = 0.1/3600; sigma_b = 0.1/3600;
 
 % set up the cycle unit profile
 [v,rc,z_dis,OCV,Qend] = ECMcell(dis_unit,temp,1,...
                             model,1,zeros(num_rc,1),Q0,u_a,1,u_b);
 
 delta_q = (1-z_dis(end))*model.QParam(find(model.temps == temp));
-chg_time = ceil(delta_q*3600/1);
+chg_time = ceil(delta_q/1)*3600;
 chg_unit = -1*ones(chg_time,1);
 short_rest_unit = zeros([300,1]);
 long_rest_unit = zeros([1000,1]);
@@ -138,8 +138,8 @@ end
 Q = all_q';
 cycledata = all_data';
 
-save('synthetic_Q.mat', "Q", '-v7.3');
-save('synthetic_cycledata.mat', "cycledata", '-v7.3');
+%save('synthetic_Q.mat', "Q", '-v7.3');
+%save('synthetic_cycledata.mat', "cycledata", '-v7.3');
 
 figure(1)
 for j = 1:1:tol_data_num,
