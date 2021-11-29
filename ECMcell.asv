@@ -15,7 +15,8 @@
 %         sik - instantaneous hysteresis for all timesteps
 %         OCV - open-circuit voltage for all timesteps
 
-function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,t0,a,b,N)
+
+function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,a,b,N)
   format long
   % Force data to be column vector(s)
   ik = ik(:); iR0 = iR0(:);
@@ -44,12 +45,10 @@ function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,t0,a,b,N)
   % Q_time = Qmax - a*t - b*N
   % Assume for each cycle(dis->chg->rest), a*t takes 0.1% of max discharge
   % capacity, and b*N takes 0.1%
-func_ind = 2;
+
 Ltime = length(ik);
-delta_Q = AgingFuncDisQ(func_ind, a, b, N, Ltime);
-Q_time = 3600*(Q0 - delta_Q)';
-zk = z0-cumsum([0;etaik(1:end-1)])*deltaT./Q_time;
-Qend = Q_time/3600;
+delta_Q = AgingFuncDisQ(func_ind, a, b, N, t0, Ltime)
+
 
 %   a_Qtime = a*time_length;
 %   if b_signal == 1,     
@@ -81,3 +80,18 @@ Qend = Q_time/3600;
   OCV = getOCVfromSOCTemp(zk,T,model);
   vk = OCV - irk*RParam' - ik.*R0Param;
 
+
+
+function delta_Q = AgingFuncDisQ(func_ind, a, b, N, t0, Ltime)
+format long
+if func_ind == 1,
+    a_delta = a*[1:1:Ltime];
+    b_delta = b*[1:1:Ltime];
+elseif func_ind == 2,
+    a_delta = exp(a*[t0:1:t0+Ltime]);
+    b_delta = exp(b*N*[1:1:Ltime]);
+else
+    error('ERROR: The Function type is not included!');
+end
+    delta_Q = a_delta + b_delta;
+end

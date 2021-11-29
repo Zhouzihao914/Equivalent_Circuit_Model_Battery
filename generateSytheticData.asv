@@ -22,13 +22,9 @@ Qmax = model.QParam(find(model.temps == 25));
 Q0 = Qmax;
 
 % set up the hyper-params for a,b (linear)
-% u_a = 0.001/72000; sigma_a = 0.001/72000;
-% u_b = 0.01/3600; sigma_b = 0.01/3600;
+u_a = 0.001/72000; sigma_a = 0.001/72000;
+u_b = 0.01/3600; sigma_b = 0.01/3600;
 
-
-% set up the hyper-params for a,b (exp)
-u_a = 0.001/54000; sigma_a = 0.001/54000;
-u_b = 6; sigma_b = 3;
 % set up the cycle unit profile
 [v,rc,z_dis,OCV,Qend] = ECMcell(dis_unit,temp,1,...
                             model,1,zeros(num_rc,1),Q0,0,u_a,u_b,0);
@@ -53,8 +49,10 @@ for i = 1:tol_data_num,
         curr_b = min(curr_b,2*u_b);
     end
     
+
     all_data(i).a = curr_a;
     all_data(i).b = curr_b;
+
     Q0 = Qmax;
     z0 = 1;
 
@@ -68,6 +66,8 @@ for i = 1:tol_data_num,
     cycle_index = [];
     real_chg_time = [];
     
+    
+       
     
     all_data(i).Qinit = Q0;
     for ii = 1:repeat_times,
