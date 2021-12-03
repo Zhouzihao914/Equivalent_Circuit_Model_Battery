@@ -13,7 +13,7 @@ q = getParamESC('QParam',T,model);
 rc = exp(-1./abs(getParamESC('RCParam',T,model)));
 r  = (getParamESC('RParam',T,model));
 r0 = getParamESC('R0Param',T,model);
-maxV = 3.5;
+maxV = 3.6;
 
 storez = zeros([maxtime 1]);  % storage for SOC
 storev = zeros([maxtime 1]);  % storage for voltage

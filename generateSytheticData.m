@@ -1,3 +1,14 @@
+% Simulates synthetic battery usage data 
+% The UDDS(Urban Dynamometer Driving Schedule) is used as dynamic profile
+% for battery usage. Also the battery discharge capacity drop due to
+% battery aging is included.
+%
+% 'func_id' is used to customize aging function for discharge capacity.
+% (0-no aging effect; 1-linear aging; 2-exponential aging)
+% 
+% Running generateOCVSOC.m and generateDynamic.m
+% before running this script
+
 clear
 close all
 load 'udds/udds_curr.mat'
@@ -11,9 +22,15 @@ all_q = {};
 cycle_table_variables = {'time','curr','volt','temp'};
 q_table_variables = {'time','cycles','capacity','resistance'};
 
-
-tol_data_num = 100;
+% Expected sample size and repeated usage cycles for each sample. It may
+% takes more than 10 minutes if these parameters are large (~100/~50)
+% also the avaliable repeat_times is closely related to your aging func, as
+% the battery may aging to end of life before your predefined repeat_times.
+tol_data_num = 5;
 repeat_times = 60;
+func_id = 2;
+
+% ECM parameters
 num_rc = 1;
 temp = 25;
 do_Qtime = 1;
@@ -21,29 +38,26 @@ dis_unit = udds_current/(8);
 Qmax = model.QParam(find(model.temps == 25));
 Q0 = Qmax;
 
-% set up the hyper-params for a,b (linear)
+% set up the hyper-params for a,b (linear disQ aging)
 % u_a = 0.001/72000; sigma_a = 0.001/72000;
 % u_b = 0.01/3600; sigma_b = 0.01/3600;
 
-
-% set up the hyper-params for a,b (exp)
+% set up the hyper-params for a,b (Exp disQ aging)
 u_a = 0.001/54000; sigma_a = 0.001/54000;
 u_b = 6; sigma_b = 3;
+
 % set up the cycle unit profile
 [v,rc,z_dis,OCV,Qend] = ECMcell(dis_unit,temp,1,...
                             model,1,zeros(num_rc,1),Q0,0,u_a,u_b,0);
-
 delta_q = (1-z_dis(end))*model.QParam(find(model.temps == temp));
 chg_time = ceil(delta_q/1)*3600;
 chg_unit = -1*ones(chg_time,1);
 short_rest_unit = zeros([300,1]);
 long_rest_unit = zeros([1000,1]);
-%all_curr_unit = [dis_unit;short_rest_unit;chg_unit;long_rest_unit];
-%all_curr_unit = all_curr_unit(1:7200);
 
-for i = 1:tol_data_num,
+for i = 1:tol_data_num
     % ensure the a,b value is reasonable
-    if i == 1,
+    if i == 1
         curr_a = u_a;
         curr_b = u_b;
     else
@@ -53,28 +67,28 @@ for i = 1:tol_data_num,
         curr_b = min(curr_b,2*u_b);
     end
     
+    %for each sample, cell is initialized as 100% SOC and Qmax (new cell)
     all_data(i).a = curr_a;
     all_data(i).b = curr_b;
     Q0 = Qmax;
     z0 = 1;
-
+    
+    % store simulation data for later usage
     cycle_v = [];
     cycle_curr = [];
     cycle_z = [];
     cycle_Q = [];
     cycle_time = 0;
-    %Q_q = [];
-    %Q_time = [];
     cycle_index = [];
     real_chg_time = [];
-    
     
     all_data(i).Qinit = Q0;
     for ii = 1:repeat_times,
         cycle_num = ii;
         %discharge stage
-        [vdis,rc,zdis,OCV,Qdis] = ECMcell(dis_unit,temp,1,...
-                            model,z0,zeros(num_rc,1),Q0,length(cycle_v),curr_a,curr_b,ii);
+        [vdis,~,zdis,~,Qdis] = ECMcell(dis_unit,temp,1,...
+                            model,z0,zeros(num_rc,1),Q0,func_id,curr_a,curr_b,ii);
+
         cycle_v = [cycle_v;vdis];
         cycle_curr = [cycle_curr;dis_unit];
         cycle_z = [cycle_z;zdis];
@@ -82,8 +96,8 @@ for i = 1:tol_data_num,
         cycle_index = [cycle_index; ii*ones([length(vdis),1])];
 
         %short rest stage
-        [vrest1,rc,zrest1,OCV,Qrest1] = ECMcell(short_rest_unit,temp,1,...
-                            model,zdis(end),zeros(num_rc,1),Qdis(end),length(cycle_v),curr_a,0,ii);
+        [vrest1,~,zrest1,~,Qrest1] = ECMcell(short_rest_unit,temp,1,...
+                            model,zdis(end),zeros(num_rc,1),Qdis(end),func_id,curr_a,0,ii);
         cycle_v = [cycle_v;vrest1];
         cycle_curr = [cycle_curr;short_rest_unit];
         cycle_z = [cycle_z;zrest1];
@@ -91,12 +105,12 @@ for i = 1:tol_data_num,
         cycle_index = [cycle_index; ii*ones([length(vrest1),1])];
 
         %charge stage
-        [vchg,rc,zchg,OCV,Qchg] = ECMcell(chg_unit,temp,1,model,...
-                        zrest1(end),zeros(num_rc,1),Qrest1(end),length(cycle_v),curr_a,0,ii);
+        [vchg,~,zchg,~,Qchg] = ECMcell(chg_unit,temp,1,model,...
+                        zrest1(end),zeros(num_rc,1),Qrest1(end),func_id,curr_a,0,ii);
 
         %check if the voltage beyond cutoff volt
         vcut = find(vchg >= 3.6);
-        if length(vcut) > 0,
+        if ~isempty(vcut)
             vchg = vchg(1:vcut(1)-1);
             zchg = zchg(1:vcut(1)-1);
             Qchg = Qchg(1:vcut(1)-1);
@@ -106,7 +120,6 @@ for i = 1:tol_data_num,
 
         end
         real_chg_time = [real_chg_time;length(curr_chg)];
-        
         cycle_v = [cycle_v;vchg];
         cycle_curr = [cycle_curr;curr_chg];
         cycle_z = [cycle_z;zchg];
@@ -115,7 +128,7 @@ for i = 1:tol_data_num,
 
         %long rest stage
         [vrest2,rc,zrest2,OCV,Qrest2] = ECMcell(long_rest_unit,temp,1,model,...
-                              zchg(end),zeros(num_rc,1),Qchg(end),length(cycle_v),curr_a,0,ii);
+                              zchg(end),zeros(num_rc,1),Qchg(end),func_id,curr_a,0,ii);
 
         Q0 = Qrest2(end);
         cycle_v = [cycle_v; vrest2];
@@ -128,7 +141,6 @@ for i = 1:tol_data_num,
         %Q_time = [Q_time; cycle_time];
         cycle_index = [cycle_index; ii*ones([length(vrest2),1])];
     end
-
     
     cycle_time = [1:1:length(cycle_v)]';
     cycle_temp = temp*ones(length(cycle_v),1);
@@ -154,7 +166,7 @@ save('synthetic_cycledata_exp.mat', "cycledata", '-v7.3');
 
 
 figure(1)
-for j = 1:1:tol_data_num,
+for j = 1:1:tol_data_num
     t = [1:1:length(all_data(j).cycles.volt)];
     plot(t/3600, all_data(j).cycles.volt);
     hold on
@@ -165,7 +177,7 @@ title('Voltage Curve')
 hold off
 
 figure(2)
-for j = 1:1:tol_data_num,
+for j = 1:1:tol_data_num
     t = [1:1:length(all_data(j).cycles.volt)];
     plot(t/3600, all_data(j).cycles.curr);
     hold on
@@ -177,8 +189,7 @@ hold off
 
 figure(3)
 for j = 1:1:tol_data_num,
-    t = [1:1:length(all_data(j).cycles.volt)];
-    plot(t/3600, all_data(j).soc);
+    plot(all_data(j).cycles.time/3600, all_data(j).soc);
     hold on
 end
 xlabel('Time(hr)')
@@ -188,9 +199,8 @@ hold off
 
 figure(4)
 s = {};
-for j = 1:1:tol_data_num,
-    t = [1:1:length(all_data(j).cycles.volt)];
-    plot(t/3600, all_data(j).Qend);
+for j = 1:1:tol_data_num
+    plot(all_data(j).cycles.time/3600, all_data(j).Q);
     s{j} =  strcat('a: ', num2str(all_data(j).a,6),...
             ' b: ', num2str(all_data(j).b,4));
     hold on
@@ -202,22 +212,13 @@ title('Discharge Capacity')
 hold off
 
 figure(5)
-for j = 1:1:tol_data_num,
-    c = [1:1:repeat_times];
-    plot(c, all_data(j).chgtime);
+for j = 1:1:tol_data_num
+    plot(all_data(j).cycles.time/3600, all_data(j).Q .* all_data(j).soc);
+    s{j} =  strcat('a: ', num2str(all_data(j).a,6),...
+            ' b: ', num2str(all_data(j).b,4));
     hold on
 end
-xlabel('Cycles')
-ylabel('Charging Time(hr)')
-title('Charge Time')
-hold off
-
-figure(6)
-for j = 1:1:tol_data_num,
-    t = [1:1:length(all_data(j).cycles.volt)];
-    plot(t/3600, all_data(j).Qend .* all_data(j).soc);
-    hold on
-end
+legend(s)
 xlabel('Time(hr)')
 ylabel('Coulomb Quantity(Ah)')
 title('Real Coulomb Quantity')

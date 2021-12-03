@@ -1,6 +1,6 @@
 % script onesampleOCV.m
 % load the data from a cell <A123> tested under eight different 
-% temperatures. This script calls getOCV.m to create OCV-SOC
+% temperatures. This script calls generateOCVSOC.m to create OCV-SOC
 % relationsip, then saves the model to a model file.
 
 % This script is a self-reproduced simplified version from the one provided

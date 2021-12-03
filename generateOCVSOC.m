@@ -1,10 +1,9 @@
 % Function generateOCVSOC
 % Inputs:
-%   data = cell-test data passed in from runProcessOCV
+%   data = cell-test data passed in from onesampleOCV
 %   cellID = cell identifier (string)
 %   minV = minimum cell voltage to use in OCV relationship
 %   maxV = maximum cell voltage to use in OCV relationship
-%   savePlots = 0 or 1 ... set to "1" to save plots as files 
 % Output:
 %   model = data structure with information for recreating OCV
 
@@ -18,16 +17,15 @@ function model = generateOCVSOC(data, cellID, minV, maxV)
         error('data under 25 degC is required!')
     end
     indnot25 = find(filetemps~=25);
-
     SOC = 0:0.005:1;
     file_data = zeros([0 length(data)]); % record test data and processed data
     eta = zeros([0 length(data)]);
     tol_Q = zeros([0 length([0 length(data)])]);
-
     tol_disAh = data(ind25).script1.disAh(end) + data(ind25).script2.disAh(end) + ...
                 data(ind25).script3.disAh(end) + data(ind25).script4.disAh(end);
     tol_ChgAh = data(ind25).script1.chgAh(end) + data(ind25).script2.chgAh(end) + ...
                 data(ind25).script3.chgAh(end) + data(ind25).script4.chgAh(end);
+
     % 25 degC coulombic efficiency
     eta_25 = tol_disAh/tol_ChgAh; eta(ind25) = eta_25;
     % adjust charge Ah in all scripts per eta25
@@ -78,7 +76,6 @@ function model = generateOCVSOC(data, cellID, minV, maxV)
     file_data(ind25).disZ = disZ;
     % store the terminal voltage rather the OCV
     file_data(ind25).disV = data(ind25).script1.voltage(ind_dis);
-
 
     blend_chg = (0:length(ind_chg)-1)/(length(ind_chg)-1);
     IRblend_chg = IR1_chg + (IR2_chg - IR1_chg)*blend_chg(:);

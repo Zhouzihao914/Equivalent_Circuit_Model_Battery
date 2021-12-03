@@ -15,7 +15,7 @@
 %         sik - instantaneous hysteresis for all timesteps
 %         OCV - open-circuit voltage for all timesteps
 
-function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,t0,a,b,N)
+function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,func_ind,a,b,N)
   format long
   % Force data to be column vector(s)
   ik = ik(:); iR0 = iR0(:);
@@ -41,39 +41,20 @@ function [vk,irk,zk,OCV,Qend] = ECMcell(ik,T,deltaT,model,z0,iR0,Q0,t0,a,b,N)
   end
   
   % Assume the ECM model have built in toltal capacity time func.
-  % Q_time = Qmax - a*t - b*N
-  % Assume for each cycle(dis->chg->rest), a*t takes 0.1% of max discharge
-  % capacity, and b*N takes 0.1%
-func_ind = 2;
-Ltime = length(ik);
-delta_Q = AgingFuncDisQ(func_ind, a, b, N, Ltime);
-Q_time = 3600*(Q0 - delta_Q)';
-zk = z0-cumsum([0;etaik(1:end-1)])*deltaT./Q_time;
-Qend = Q_time/3600;
+  Ltime = length(ik);
+  delta_Q = AgingFuncDisQ(func_ind, a, b, N, Ltime);
+  if isscalar(delta_Q)
+    delta_Q = ones([Ltime,1])*delta_Q;
+  end
+  Q_time = 3600*(Q0 - delta_Q);
+  zk = z0-cumsum([0;etaik(1:end-1)])*deltaT./Q_time;
+  Qend = Q_time/3600;
 
-%   a_Qtime = a*time_length;
-%   if b_signal == 1,     
-%       b_Qtime = b*time_length;
-%       Q_time = 3600*(Q0-a_Qtime-b_Qtime);
-%   else
-%       Q_time = 3600*(Q0-a_Qtime);
-%   end
-%   zk = z0-cumsum([0;etaik(1:end-1)])*deltaT./Q_time;
-%   Qend = Q_time/3600;
-  
- % if do_Qtime == 1,
- %    time_length = length(ik)-1;  
- %    Q_time = 3600*Q*[1:-(0.001/time_length):0.97];
- %    zk = z0-cumsum([0;etaik(1:end-1)])*deltaT./Q_time';
- % else
- %    zk = z0-cumsum([0;etaik(1:end-1)])*deltaT/(Q*3600); 
- % end
-
-  if any(zk>1.1),
+  if any(zk>1.1)
     warning('Current may have wrong sign as SOC > 110%');
   end
   
-  if any(zk<-.1),
+  if any(zk<-.1)
     warning('Current may have wrong sign as SOC < -10%');
   end
     
