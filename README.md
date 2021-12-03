@@ -10,12 +10,13 @@ Begin with the onesampleOCV.m file to get required static parameters (R0, OCV-SO
 Then run the onesampleDynamic.m file to get required dynamic parameters (OCV, eta, R0, RC).
 Finally test the built ECM model with testECM.m file.
 
-There will be a AgingFuncdisQ.m file to define the discharge capacity into a function of time. 
-There will be simulation file for CC-CV and CP-CV profiles.
-There will be generateSynthetic.m for generating synthetic data which simulate the real usage of battery in Electrical vehicles.
+ECMcell.m -- Simulates an ECM model for input current ik at temperature T.
+AgingFuncdisQ.m -- define the discharge capacity into a function of time. 
+simCCCV.m /simCPCV.m -- simulate Constant Current Constant Voltage(CC-CV) and Constant Power Constant Voltage(CP-CV) charging profile.
+generateSynthetic.m -- generating synthetic data which simulate the real usage of battery in Electrical vehicles.
 
 ## Project status
-To be continued...
+Most parts are done. May restruct some codes later for object oriented programming 
 
 ## Authors and acknowledgment
 Author: Zihao Zhou
