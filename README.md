@@ -12,10 +12,10 @@ Finally test the built ECM model with testECM.m file.\
 ECMcell.m -- Simulates an ECM model for input current ik at temperature T.\
 AgingFuncdisQ.m -- define the discharge capacity into a function of time. \
 simCCCV.m /simCPCV.m -- simulate Constant Current Constant Voltage(CC-CV) and Constant Power Constant Voltage(CP-CV) charging profile.\
-generateSynthetic.m -- generating synthetic data which simulate the real usage of battery in Electrical vehicles.\
+generateSynthetic.m -- generating synthetic data which simulate the real usage of battery in Electrical vehicles.
 
 ## Project status
-Most parts are done. May restruct some codes later for object oriented programming.\
+Most parts are done. May restruct some codes later for object oriented programming.
 
 ## Authors and acknowledgment
 Author: Zihao Zhou
